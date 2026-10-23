@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+  <title>ريلز تسبيح</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000;
+    }
+
+    /* خلفية الكعبة المشرفة (صورة محلية kaaba.jpg، تخدم بدون إنترنت) */
+    .reels-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.6)),
+                  url('kaaba.jpg') center center / cover no-repeat;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* منطقة اللمس للعد */
+    .tap-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* الشريط العلوي للريلز */
+    .top-bar {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 35px 20px 10px;
+      color: #fff;
+    }
+    .top-bar h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .top-bar .camera-icon {
+      font-size: 1.4rem;
+      opacity: 0.9;
+    }
+
+    /* شريط التفاعل الجانبي (الأيقونات) */
+    .actions-sidebar {
+      position: absolute;
+      left: 15px; /* وضع الأيقونات على اليسار مثل إنستغرام/فيسبوك بالعربية */
+      bottom: 85px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      z-index: 10;
+    }
+
+    .action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #fff;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .action-btn .icon-box {
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .action-btn svg {
+      width: 32px;
+      height: 32px;
+      fill: #ffffff;
+    }
+
+    .action-btn.active svg {
+      fill: #ff2b54; /* لون القلب عند التفاعل */
+    }
+
+    .action-count {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-top: 4px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+
+    /* تفاصيل الحساب أسفل الشاشة */
+    .bottom-info {
+      position: relative;
+      z-index: 2;
+      padding: 20px;
+      margin-bottom: 10px;
+      color: #fff;
+      max-width: 75%;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid #d4af37;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .username {
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    }
+
+    .caption {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    }
+
+    .audio-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    /* تأثير القلب الطائر عند الضغط */
+    .floating-heart {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      pointer-events: none;
+      z-index: 5;
+      transform: translate(-50%, -50%) scale(0);
+      animation: popAndFade 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    @keyframes popAndFade {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+      50% { transform: translate(-50%, -80px) scale(1.3); opacity: 1; }
+      100% { transform: translate(-50%, -130px) scale(1); opacity: 0; }
+    }
+
+    /* نبضة الأيقونة */
+    .pulse {
+      transform: scale(1.35) !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="reels-container">
+    <!-- طبقة التقاط اللمس للعد -->
+    <div class="tap-layer" id="tapLayer"></div>
+
+    <!-- شريط علوي -->
+    <div class="top-bar">
+      <h2>Reels • سبحة الأذكار</h2>
+      <div class="camera-icon">📷</div>
+    </div>
+
+    <!-- الأيقونات الجانبية -->
+    <div class="actions-sidebar">
+      
+      <!-- 1. أيقونة اللايك (تعد من 1 إلى 100) -->
+      <div class="action-btn" id="likeBtn">
+        <div class="icon-box" id="likeIcon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+        <span class="action-count" id="likeCount">0</span>
+      </div>
+
+      <!-- 2. أيقونة الكومنت (تحسب عدد مرات الوصول للـ 100) -->
+      <div class="action-btn" id="commentBtn">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+          </svg>
+        </div>
+        <span class="action-count" id="hundredsCount">0</span>
+      </div>
+
+      <!-- 3. أيقونة المشاركة (تصفير / Reset) -->
+      <div class="action-btn" id="shareResetBtn">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+          </svg>
+        </div>
+        <span class="action-count">تصفير</span>
+      </div>
+
+      <!-- 4. أيقونة الحفظ (ديكور) -->
+      <div class="action-btn">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+          </svg>
+        </div>
+        <span class="action-count">حفظ</span>
+      </div>
+
+      <!-- 5. ثلاث نقاط (ديكور) -->
+      <div class="action-btn">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- التفاصيل السفلية (اسم الحساب والكابشن) -->
+    <div class="bottom-info">
+      <div class="user-info">
+        <div class="avatar">🕋</div>
+        <span class="username">@tasbih_makkah</span>
+      </div>
+      <p class="caption">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ ، سُبْحَانَ اللَّهِ الْعَظِيمِ 🤍 اضغط في أي مكان للتسبيح</p>
+      <div class="audio-tag">
+        <span>🎵 الصوت الأصلي • تلاوة خاشعة من الحرم المكي</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentCount = parseInt(localStorage.getItem('reel_like_count') || '0');
+    let hundredsCount = parseInt(localStorage.getItem('reel_hundreds_count') || '0');
+
+    const tapLayer = document.getElementById('tapLayer');
+    const likeBtn = document.getElementById('likeBtn');
+    const likeIcon = document.getElementById('likeIcon');
+    const likeCountDisplay = document.getElementById('likeCount');
+    const hundredsCountDisplay = document.getElementById('hundredsCount');
+    const shareResetBtn = document.getElementById('shareResetBtn');
+
+    function updateUI() {
+      likeCountDisplay.textContent = currentCount;
+      hundredsCountDisplay.textContent = hundredsCount;
+      
+      if (currentCount > 0) {
+        likeBtn.classList.add('active');
+      } else {
+        likeBtn.classList.remove('active');
+      }
+    }
+
+    updateUI();
+
+    // ===== صوت التنبيه عند كل 100 =====
+    let audioCtx = null;
+    function unlockAudio() {
+      try {
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      } catch (err) {}
+    }
+
+    function playChime() {
+      if (!audioCtx) return;
+      try {
+        [880, 1174.66, 1567.98].forEach((freq, i) => {
+          const t = audioCtx.currentTime + i * 0.18;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.5, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(t);
+          osc.stop(t + 0.65);
+        });
+      } catch (err) {}
+    }
+
+    // دالة العد والضغط
+    function handleTap(e) {
+      unlockAudio();
+      currentCount++;
+
+      // عند الوصول إلى 100
+      if (currentCount >= 100) {
+        currentCount = 0;
+        hundredsCount++;
+        playChime(); // تنبيه صوتي عند اكتمال 100
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 150]); // اهتزاز احتفالي باكتمال 100
+      } else {
+        if (navigator.vibrate) navigator.vibrate(35); // هزة خفيفة مع كل تسبيحة
+      }
+
+      localStorage.setItem('reel_like_count', currentCount);
+      localStorage.setItem('reel_hundreds_count', hundredsCount);
+      updateUI();
+
+      // أنيميشن نبض القلب
+      likeIcon.classList.add('pulse');
+      setTimeout(() => likeIcon.classList.remove('pulse'), 150);
+
+      // إنشاء قلب أحمر متطاير في مكان الضغطة
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX) || (window.innerWidth / 2);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY) || (window.innerHeight / 2);
+      createFloatingHeart(clientX, clientY);
+    }
+
+    function createFloatingHeart(x, y) {
+      const heart = document.createElement('div');
+      heart.className = 'floating-heart';
+      heart.style.left = `${x}px`;
+      heart.style.top = `${y}px`;
+      heart.innerHTML = `<svg viewBox="0 0 24 24" fill="#ff2b54"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 650);
+    }
+
+    tapLayer.addEventListener('pointerdown', handleTap);
+
+    // تصفير العداد من خلال أيقونة المشاركة
+    shareResetBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm('هل تريد تصفير جميع العدادات والمئات والبدء من جديد؟')) {
+        currentCount = 0;
+        hundredsCount = 0;
+        localStorage.setItem('reel_like_count', '0');
+        localStorage.setItem('reel_hundreds_count', '0');
+        updateUI();
+        if (navigator.vibrate) navigator.vibrate(60);
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>
